@@ -1,0 +1,305 @@
+/* ─── Reset & Variables ─────────────────────────── */
+:root {
+    --bg:          #080c14;
+    --card-bg:     rgba(18, 24, 40, 0.82);
+    --border:      rgba(255, 255, 255, 0.08);
+    --primary:     #635bff;
+    --primary-dim: rgba(99, 91, 255, 0.18);
+    --accent:      #ff2d55;
+    --accent-dim:  rgba(255, 45, 85, 0.15);
+    --green:       #30d158;
+    --text1:       #f0f2ff;
+    --text2:       #8890aa;
+    --radius-lg:   20px;
+    --radius-md:   12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text1);
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px);
+    overflow-x: hidden;
+}
+
+/* ─── Background blobs ──────────────────────────── */
+.bg-blobs {
+    position: fixed; inset: 0;
+    z-index: -1; overflow: hidden; pointer-events: none;
+}
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.18;
+    animation: drift 18s ease-in-out infinite alternate;
+}
+.blob-1 { width: 420px; height: 420px; background: var(--primary); top: -120px; left: -80px; }
+.blob-2 { width: 320px; height: 320px; background: var(--accent);  bottom: -80px; right: -60px; animation-delay: -6s; }
+.blob-3 { width: 200px; height: 200px; background: #00c8ff;        top: 50%; left: 60%; animation-delay: -12s; opacity: 0.1; }
+
+@keyframes drift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(40px, 30px) scale(1.08); }
+}
+
+/* ─── Main card ─────────────────────────────────── */
+.container {
+    width: 100%;
+    max-width: 480px;
+    padding-top: 32px;
+}
+
+/* ─── Header ────────────────────────────────────── */
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+}
+.logo-icon {
+    font-size: 36px;
+    width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(99, 91, 255, 0.4);
+}
+.logo-text {
+    font-size: 26px; font-weight: 800;
+    background: linear-gradient(90deg, #c4c0ff, #ff6b9d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.subtitle {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 2px;
+}
+
+/* ─── How-to banner ─────────────────────────────── */
+.how-to-banner {
+    background: var(--primary-dim);
+    border: 1px solid rgba(99, 91, 255, 0.25);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 18px 0 24px;
+}
+.step-badge {
+    background: var(--primary);
+    color: #fff;
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.step-arrow { color: var(--primary); font-weight: 700; }
+
+/* ─── Inputs ────────────────────────────────────── */
+.input-group { margin-bottom: 16px; }
+
+label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text2);
+    margin-bottom: 8px;
+    padding-left: 2px;
+}
+
+.input-row {
+    display: flex;
+    gap: 8px;
+}
+
+input[type="url"], input[type="text"] {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    color: var(--text1);
+    font-size: 15px;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+}
+input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-dim);
+}
+input::placeholder { color: var(--text2); opacity: 0.6; }
+
+.btn-paste {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text1);
+    font-size: 20px;
+    width: 52px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    flex-shrink: 0;
+}
+.btn-paste:active { transform: scale(0.93); background: rgba(255,255,255,0.15); }
+
+/* ─── Convert button ────────────────────────────── */
+.btn-convert {
+    width: 100%;
+    padding: 17px;
+    background: linear-gradient(135deg, var(--primary) 0%, #4834d4 100%);
+    border: none;
+    border-radius: var(--radius-lg);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 8px 28px rgba(99, 91, 255, 0.45);
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+    margin-bottom: 24px;
+}
+.btn-convert:hover  { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(99, 91, 255, 0.55); }
+.btn-convert:active { transform: translateY(0);    box-shadow: 0 4px 14px rgba(99, 91, 255, 0.4); }
+.btn-convert:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.btn-icon { font-size: 20px; }
+
+/* ─── Status / Progress ─────────────────────────── */
+.status-area { margin-bottom: 20px; }
+
+.status-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.status-phase {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.progress-track {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 3px;
+    transition: width 0.6s ease;
+}
+.progress-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text2);
+}
+.progress-pct { font-weight: 700; color: var(--text1); }
+
+/* ─── Result Card ───────────────────────────────── */
+.result-area { margin-bottom: 20px; }
+
+.result-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 14px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+.result-card.success { border-color: rgba(48, 209, 88, 0.3); }
+.result-card.error   { border-color: rgba(255, 107, 107, 0.3); }
+
+.result-icon { font-size: 28px; flex-shrink: 0; }
+.result-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.result-hint  { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+.btn-download {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent), #c91a3b);
+    border-radius: var(--radius-lg);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    font-family: inherit;
+    box-shadow: 0 8px 24px rgba(255, 45, 85, 0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+    margin-bottom: 14px;
+}
+.btn-download:active { transform: scale(0.97); }
+
+/* ─── Guide accordion ───────────────────────────── */
+.music-guide {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.music-guide summary {
+    padding: 14px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+}
+.music-guide summary::-webkit-details-marker { display: none; }
+
+.guide-steps {
+    padding: 0 16px 14px 32px;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.8;
+}
+.guide-steps strong { color: var(--text1); }
+
+/* ─── Footer ────────────────────────────────────── */
+footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text2);
+    opacity: 0.5;
+    padding: 20px 0 40px;
+}
+
+/* ─── Mobile polish ─────────────────────────────── */
+@media (max-width: 480px) {
+    .container { padding-top: 20px; }
+}

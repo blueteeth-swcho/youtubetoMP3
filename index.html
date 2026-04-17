@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>YT → MP3</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <!-- PWA / iPhone home-screen app -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="YT→MP3">
+    <meta name="description" content="유튜브 영상을 MP3로 변환해 Apple Music에 자동 추가">
+</head>
+<body>
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-area">
+                <div class="logo-icon">♪</div>
+                <div>
+                    <div class="logo-text">YT → MP3</div>
+                    <p class="subtitle">유튜브 음성을 Apple Music으로</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- How-to banner -->
+        <div class="how-to-banner">
+            <span class="step-badge">①</span> 유튜브에서 URL 복사
+            <span class="step-arrow">→</span>
+            <span class="step-badge">②</span> 붙여넣기 후 변환
+            <span class="step-arrow">→</span>
+            <span class="step-badge">③</span> Apple Music 저장
+        </div>
+
+        <main>
+            <!-- URL Input -->
+            <div class="input-group">
+                <label for="url-input">유튜브 URL</label>
+                <div class="input-row">
+                    <input type="url"
+                           id="url-input"
+                           inputmode="url"
+                           placeholder="https://www.youtube.com/watch?v=..."
+                           autocomplete="off"
+                           autocorrect="off"
+                           spellcheck="false">
+                    <button id="paste-btn" class="btn-paste" title="클립보드에서 붙여넣기">
+                        📋
+                    </button>
+                </div>
+            </div>
+
+            <!-- Convert Button -->
+            <button id="convert-btn" class="btn-convert">
+                <span class="btn-icon">🎵</span>
+                <span class="btn-label">MP3 변환 시작</span>
+            </button>
+
+            <!-- Progress Area -->
+            <div id="status-area" class="status-area" style="display:none;">
+                <div class="status-card">
+                    <div id="status-phase" class="status-phase">처리 중...</div>
+                    <div class="progress-track">
+                        <div id="progress-bar" class="progress-fill"></div>
+                    </div>
+                    <div class="progress-row">
+                        <span id="status-text" class="status-text">시작 중...</span>
+                        <span id="progress-pct" class="progress-pct">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Area -->
+            <div id="result-area" class="result-area" style="display:none;">
+                <div class="result-card success">
+                    <div class="result-icon">✅</div>
+                    <div class="result-info">
+                        <div class="result-title" id="result-title"></div>
+                        <div class="result-hint">아래 버튼으로 저장 → 파일 앱 → 음악 앱에 추가</div>
+                    </div>
+                </div>
+                <a id="download-link" class="btn-download" download>
+                    <span>⬇️</span> MP3 다운로드
+                </a>
+                <div class="music-guide">
+                    <details>
+                        <summary>📱 Apple Music에 추가하는 방법</summary>
+                        <ol class="guide-steps">
+                            <li>위 버튼으로 MP3를 다운로드합니다.</li>
+                            <li>화면 아래 <strong>파일(Files)</strong> 앱이 열립니다.</li>
+                            <li>파일을 길게 누르고 <strong>공유</strong>를 탭합니다.</li>
+                            <li>목록에서 <strong>음악(Music)</strong>을 선택합니다.</li>
+                            <li>라이브러리에 추가되면 Apple Watch에도 자동 동기화됩니다! 🎧</li>
+                        </ol>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Error Area -->
+            <div id="error-area" class="result-area" style="display:none;">
+                <div class="result-card error">
+                    <div class="result-icon">❌</div>
+                    <div class="result-info">
+                        <div class="result-title">변환 실패</div>
+                        <div id="error-text" class="result-hint" style="color:#ff6b6b;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>개인 전용 서버 · 광고 없음 · 데이터 저장 안 함</p>
+        </footer>
+    </div>
+
+    <script>
+        const urlInput    = document.getElementById('url-input');
+        const pasteBtn    = document.getElementById('paste-btn');
+        const convertBtn  = document.getElementById('convert-btn');
+        const statusArea  = document.getElementById('status-area');
+        const resultArea  = document.getElementById('result-area');
+        const errorArea   = document.getElementById('error-area');
+        const progressBar = document.getElementById('progress-bar');
+        const progressPct = document.getElementById('progress-pct');
+        const statusText  = document.getElementById('status-text');
+        const statusPhase = document.getElementById('status-phase');
+        const resultTitle = document.getElementById('result-title');
+        const downloadLink= document.getElementById('download-link');
+        const errorText   = document.getElementById('error-text');
+
+        // Auto-fill if URL passed as query param  (?url=...)
+        const qp = new URLSearchParams(window.location.search);
+        if (qp.get('url')) urlInput.value = qp.get('url');
+
+        // Paste button
+        pasteBtn.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                urlInput.value = text;
+                urlInput.focus();
+            } catch {
+                alert('붙여넣기 권한을 허용해 주세요.\n(또는 직접 긴 탭 → 붙여넣기)');
+            }
+        });
+
+        function resetUI() {
+            statusArea.style.display  = 'none';
+            resultArea.style.display  = 'none';
+            errorArea.style.display   = 'none';
+            progressBar.style.width   = '0%';
+            progressPct.textContent   = '0%';
+        }
+
+        function setProgress(pct, phase, text) {
+            progressBar.style.width = pct + '%';
+            progressPct.textContent = Math.round(pct) + '%';
+            if (phase) statusPhase.textContent = phase;
+            if (text)  statusText.textContent  = text;
+        }
+
+        // Main convert handler
+        convertBtn.addEventListener('click', async () => {
+            const url = urlInput.value.trim();
+            if (!url || !url.includes('youtube')) {
+                urlInput.style.borderColor = '#ff6b6b';
+                setTimeout(() => urlInput.style.borderColor = '', 1500);
+                return;
+            }
+
+            resetUI();
+            convertBtn.disabled = true;
+            convertBtn.querySelector('.btn-label').textContent = '변환 중...';
+            statusArea.style.display = 'block';
+            setProgress(0, '🔍 영상 분석 중...', '서버에 요청 전송');
+
+            try {
+                // 1. Start conversion
+                const res  = await fetch('/api/convert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url }),
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                const jobId = data.job_id;
+
+                // 2. Poll status
+                await pollStatus(jobId);
+
+            } catch (e) {
+                showError(e.message);
+            } finally {
+                convertBtn.disabled = false;
+                convertBtn.querySelector('.btn-label').textContent = 'MP3 변환 시작';
+            }
+        });
+
+        function pollStatus(jobId) {
+            return new Promise((resolve, reject) => {
+                const timer = setInterval(async () => {
+                    try {
+                        const res = await fetch(`/api/status/${jobId}`);
+                        const job = await res.json();
+
+                        if (job.status === 'starting') {
+                            setProgress(5, '⏳ 시작 중...', '서버 준비');
+                        } else if (job.status === 'downloading' || job.status === 'processing') {
+                            const p = job.progress || 0;
+                            setProgress(p < 99 ? p : 99,
+                                job.status === 'processing' ? '🔄 MP3 변환 중...' : '⬇️ 오디오 추출 중...',
+                                `${Math.round(p)}% 완료`);
+                        } else if (job.status === 'completed') {
+                            clearInterval(timer);
+                            setProgress(100, '✅ 완료!', '파일 준비됨');
+                            statusArea.style.display = 'none';
+                            showResult(jobId, job.title);
+                            resolve();
+                        } else if (job.status === 'error') {
+                            clearInterval(timer);
+                            reject(new Error(job.error));
+                        }
+                    } catch (e) {
+                        clearInterval(timer);
+                        reject(e);
+                    }
+                }, 1500);
+            });
+        }
+
+        function showResult(jobId, title) {
+            resultTitle.textContent = title || '변환 완료';
+            downloadLink.href = `/api/download/${jobId}`;
+            resultArea.style.display = 'block';
+            resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function showError(msg) {
+            statusArea.style.display = 'none';
+            errorText.textContent = msg;
+            errorArea.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
