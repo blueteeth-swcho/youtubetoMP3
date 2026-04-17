@@ -8,11 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
-    <!-- PWA / iPhone home-screen app -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="YT→MP3">
-    <meta name="description" content="유튜브 영상을 MP3로 변환해 Apple Music에 자동 추가">
 </head>
 <body>
     <div class="bg-blobs">
@@ -22,7 +20,6 @@
     </div>
 
     <div class="container">
-        <!-- Header -->
         <header>
             <div class="logo-area">
                 <div class="logo-icon">♪</div>
@@ -33,15 +30,6 @@
             </div>
         </header>
 
-        <!-- How-to banner -->
-        <div class="how-to-banner">
-            <span class="step-badge">①</span> 유튜브에서 URL 복사
-            <span class="step-arrow">→</span>
-            <span class="step-badge">②</span> 붙여넣기 후 변환
-            <span class="step-arrow">→</span>
-            <span class="step-badge">③</span> Apple Music 저장
-        </div>
-
         <main>
             <!-- URL Input -->
             <div class="input-group">
@@ -50,13 +38,14 @@
                     <input type="url"
                            id="url-input"
                            inputmode="url"
-                           placeholder="https://www.youtube.com/watch?v=..."
+                           placeholder="URL을 붙여넣거나 자동감지 됩니다..."
                            autocomplete="off"
                            autocorrect="off"
                            spellcheck="false">
-                    <button id="paste-btn" class="btn-paste" title="클립보드에서 붙여넣기">
-                        📋
-                    </button>
+                    <button id="paste-btn" class="btn-paste" title="클립보드 붙여넣기">📋</button>
+                </div>
+                <div id="clipboard-hint" class="clipboard-hint" style="display:none;">
+                    📎 클립보드에서 URL을 감지했습니다
                 </div>
             </div>
 
@@ -66,17 +55,40 @@
                 <span class="btn-label">MP3 변환 시작</span>
             </button>
 
+            <!-- Cold Start Warning -->
+            <div class="notice-card">
+                ⏱ 첫 변환은 서버 시작으로 <strong>약 1분</strong> 소요될 수 있습니다. 멈춘 것이 아닙니다.
+            </div>
+
             <!-- Progress Area -->
             <div id="status-area" class="status-area" style="display:none;">
                 <div class="status-card">
-                    <div id="status-phase" class="status-phase">처리 중...</div>
+                    <!-- Animated phase icon -->
+                    <div class="phase-row">
+                        <div id="phase-spinner" class="spinner"></div>
+                        <div id="status-phase" class="status-phase">처리 중...</div>
+                    </div>
+
+                    <!-- Timeline steps -->
+                    <div class="timeline">
+                        <div id="step-wake"   class="tl-step active">🌐 서버 시작</div>
+                        <div id="step-info"   class="tl-step">🔍 영상 분석</div>
+                        <div id="step-dl"     class="tl-step">⬇️ 오디오 추출</div>
+                        <div id="step-conv"   class="tl-step">🔄 MP3 변환</div>
+                        <div id="step-done"   class="tl-step">✅ 완료</div>
+                    </div>
+
+                    <!-- Progress bar -->
                     <div class="progress-track">
                         <div id="progress-bar" class="progress-fill"></div>
                     </div>
                     <div class="progress-row">
-                        <span id="status-text" class="status-text">시작 중...</span>
+                        <span id="status-text" class="status-text">요청 전송 중...</span>
                         <span id="progress-pct" class="progress-pct">0%</span>
                     </div>
+
+                    <!-- Elapsed time -->
+                    <div id="elapsed-wrap" class="elapsed">경과시간: <span id="elapsed">0</span>초</div>
                 </div>
             </div>
 
@@ -86,23 +98,27 @@
                     <div class="result-icon">✅</div>
                     <div class="result-info">
                         <div class="result-title" id="result-title"></div>
-                        <div class="result-hint">아래 버튼으로 저장 → 파일 앱 → 음악 앱에 추가</div>
+                        <div class="result-hint">MP3 변환 완료!</div>
                     </div>
                 </div>
                 <a id="download-link" class="btn-download" download>
                     <span>⬇️</span> MP3 다운로드
                 </a>
                 <div class="music-guide">
-                    <details>
+                    <details open>
                         <summary>📱 Apple Music에 추가하는 방법</summary>
                         <ol class="guide-steps">
                             <li>위 버튼으로 MP3를 다운로드합니다.</li>
-                            <li>화면 아래 <strong>파일(Files)</strong> 앱이 열립니다.</li>
-                            <li>파일을 길게 누르고 <strong>공유</strong>를 탭합니다.</li>
-                            <li>목록에서 <strong>음악(Music)</strong>을 선택합니다.</li>
-                            <li>라이브러리에 추가되면 Apple Watch에도 자동 동기화됩니다! 🎧</li>
+                            <li>파일 앱이 열리면 파일을 <strong>길게 누릅니다.</strong></li>
+                            <li><strong>공유</strong> → <strong>음악(Music)</strong> 선택</li>
+                            <li>Apple Watch에도 자동 동기화됩니다! 🎧</li>
                         </ol>
                     </details>
+                    <div class="shortcut-tip">
+                        💡 <strong>유튜브에서 바로 하고 싶으면?</strong><br>
+                        단축어(Shortcuts) 설정 방법을 알려드릴게요.
+                        <button id="show-shortcut-btn" class="btn-shortcut-info">단축어 만들기 →</button>
+                    </div>
                 </div>
             </div>
 
@@ -115,6 +131,33 @@
                         <div id="error-text" class="result-hint" style="color:#ff6b6b;"></div>
                     </div>
                 </div>
+                <button id="retry-btn" class="btn-convert" style="margin-top:12px;">다시 시도</button>
+            </div>
+
+            <!-- Shortcut Guide (hidden by default) -->
+            <div id="shortcut-guide" class="shortcut-guide" style="display:none;">
+                <h3>📱 단축어로 완전 자동화하기</h3>
+                <p class="shortcut-desc">유튜브 공유 버튼 → 단축어 선택 → Apple Music 자동 등록</p>
+                <ol class="guide-steps">
+                    <li><strong>단축어 앱</strong> 실행 → <strong>+</strong> 버튼 → <strong>동작 추가</strong></li>
+                    <li><strong>"URL"</strong> 검색 후 추가 → URL 값을 <code>단축어 입력</code>으로 설정</li>
+                    <li><strong>"URL 내용 가져오기"</strong> 추가:<br>
+                        URL: <code id="server-url-convert"></code><br>
+                        방법: POST, 본문: JSON, 키 <code>url</code> → 값 <code>단축어 입력</code>
+                    </li>
+                    <li><strong>"사전의 값 가져오기"</strong> → 키: <code>job_id</code></li>
+                    <li><strong>"반복"</strong> 추가 (최대 60번):
+                        <ul>
+                            <li>대기 5초</li>
+                            <li>URL 내용 가져오기: <code id="server-url-status"></code></li>
+                            <li>사전의 값 → 키: <code>status</code></li>
+                            <li>만약 status = <code>completed</code> → 반복 중단</li>
+                        </ul>
+                    </li>
+                    <li><strong>"URL 내용 가져오기"</strong>: <code id="server-url-download"></code></li>
+                    <li><strong>"음악 라이브러리에 추가"</strong> 동작 추가</li>
+                    <li>단축어 저장 → <strong>공유 시트에서 보기</strong> 활성화</li>
+                </ol>
             </div>
         </main>
 
@@ -124,6 +167,7 @@
     </div>
 
     <script>
+        const API_BASE = window.location.origin;
         const urlInput    = document.getElementById('url-input');
         const pasteBtn    = document.getElementById('paste-btn');
         const convertBtn  = document.getElementById('convert-btn');
@@ -137,10 +181,32 @@
         const resultTitle = document.getElementById('result-title');
         const downloadLink= document.getElementById('download-link');
         const errorText   = document.getElementById('error-text');
+        const elapsedEl   = document.getElementById('elapsed');
+        const clipboardHint = document.getElementById('clipboard-hint');
 
-        // Auto-fill if URL passed as query param  (?url=...)
+        // Set server URLs in shortcut guide
+        document.getElementById('server-url-convert').textContent  = API_BASE + '/api/convert';
+        document.getElementById('server-url-status').textContent   = API_BASE + '/api/status/[job_id]';
+        document.getElementById('server-url-download').textContent = API_BASE + '/api/download/[job_id]';
+
+        // Auto-read clipboard on load
+        async function tryAutoClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text && (text.includes('youtube.com') || text.includes('youtu.be'))) {
+                    urlInput.value = text;
+                    clipboardHint.style.display = 'block';
+                    setTimeout(() => clipboardHint.style.display = 'none', 4000);
+                }
+            } catch { /* permission denied or no clipboard access - silent */ }
+        }
+        tryAutoClipboard();
+
+        // Also check URL query param (?url=...)
         const qp = new URLSearchParams(window.location.search);
-        if (qp.get('url')) urlInput.value = qp.get('url');
+        if (qp.get('url')) {
+            urlInput.value = qp.get('url');
+        }
 
         // Paste button
         pasteBtn.addEventListener('click', async () => {
@@ -149,8 +215,21 @@
                 urlInput.value = text;
                 urlInput.focus();
             } catch {
-                alert('붙여넣기 권한을 허용해 주세요.\n(또는 직접 긴 탭 → 붙여넣기)');
+                alert('붙여넣기 권한 필요 — 직접 길게 탭 → 붙여넣기 하세요');
             }
+        });
+
+        // Shortcut guide toggle
+        document.getElementById('show-shortcut-btn')?.addEventListener('click', () => {
+            const guide = document.getElementById('shortcut-guide');
+            guide.style.display = guide.style.display === 'none' ? 'block' : 'none';
+            guide.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Retry
+        document.getElementById('retry-btn')?.addEventListener('click', () => {
+            resetUI();
+            convertBtn.click();
         });
 
         function resetUI() {
@@ -159,21 +238,54 @@
             errorArea.style.display   = 'none';
             progressBar.style.width   = '0%';
             progressPct.textContent   = '0%';
+            ['step-wake','step-info','step-dl','step-conv','step-done'].forEach((id, i) => {
+                const el = document.getElementById(id);
+                el.className = 'tl-step' + (i === 0 ? ' active' : '');
+            });
         }
 
-        function setProgress(pct, phase, text) {
+        function activateStep(stepId) {
+            const steps = ['step-wake','step-info','step-dl','step-conv','step-done'];
+            const idx = steps.indexOf(stepId);
+            steps.forEach((id, i) => {
+                const el = document.getElementById(id);
+                if (i < idx)       el.className = 'tl-step done';
+                else if (i === idx) el.className = 'tl-step active';
+                else               el.className = 'tl-step';
+            });
+        }
+
+        function setProgress(pct, phase, text, stepId) {
             progressBar.style.width = pct + '%';
             progressPct.textContent = Math.round(pct) + '%';
             if (phase) statusPhase.textContent = phase;
             if (text)  statusText.textContent  = text;
+            if (stepId) activateStep(stepId);
         }
 
-        // Main convert handler
+        // Elapsed timer
+        let elapsedTimer = null;
+        let startTime = 0;
+        function startElapsed() {
+            startTime = Date.now();
+            elapsedTimer = setInterval(() => {
+                elapsedEl.textContent = Math.floor((Date.now() - startTime) / 1000);
+            }, 1000);
+        }
+        function stopElapsed() {
+            clearInterval(elapsedTimer);
+        }
+
+        // Main convert
         convertBtn.addEventListener('click', async () => {
             const url = urlInput.value.trim();
-            if (!url || !url.includes('youtube')) {
+            if (!url || (!url.includes('youtube') && !url.includes('youtu.be'))) {
                 urlInput.style.borderColor = '#ff6b6b';
-                setTimeout(() => urlInput.style.borderColor = '', 1500);
+                urlInput.placeholder = '유튜브 URL을 입력해주세요';
+                setTimeout(() => {
+                    urlInput.style.borderColor = '';
+                    urlInput.placeholder = 'URL을 붙여넣거나 자동감지 됩니다...';
+                }, 2000);
                 return;
             }
 
@@ -181,11 +293,11 @@
             convertBtn.disabled = true;
             convertBtn.querySelector('.btn-label').textContent = '변환 중...';
             statusArea.style.display = 'block';
-            setProgress(0, '🔍 영상 분석 중...', '서버에 요청 전송');
+            startElapsed();
+            setProgress(3, '🌐 서버 시작 중...', '서버가 깨어나는 중입니다 (최대 60초)', 'step-wake');
 
             try {
-                // 1. Start conversion
-                const res  = await fetch('/api/convert', {
+                const res  = await fetch(`${API_BASE}/api/convert`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url }),
@@ -193,12 +305,11 @@
                 const data = await res.json();
                 if (data.error) throw new Error(data.error);
 
-                const jobId = data.job_id;
-
-                // 2. Poll status
-                await pollStatus(jobId);
+                setProgress(8, '🔍 영상 분석 중...', '영상 정보를 읽고 있습니다', 'step-info');
+                await pollStatus(data.job_id);
 
             } catch (e) {
+                stopElapsed();
                 showError(e.message);
             } finally {
                 convertBtn.disabled = false;
@@ -210,37 +321,42 @@
             return new Promise((resolve, reject) => {
                 const timer = setInterval(async () => {
                     try {
-                        const res = await fetch(`/api/status/${jobId}`);
+                        const res = await fetch(`${API_BASE}/api/status/${jobId}`);
                         const job = await res.json();
 
                         if (job.status === 'starting') {
-                            setProgress(5, '⏳ 시작 중...', '서버 준비');
-                        } else if (job.status === 'downloading' || job.status === 'processing') {
+                            setProgress(10, '⏳ 준비 중...', '서버가 처리를 시작하고 있습니다', 'step-info');
+                        } else if (job.status === 'downloading') {
                             const p = job.progress || 0;
-                            setProgress(p < 99 ? p : 99,
-                                job.status === 'processing' ? '🔄 MP3 변환 중...' : '⬇️ 오디오 추출 중...',
-                                `${Math.round(p)}% 완료`);
+                            setProgress(10 + p * 0.6, '⬇️ 오디오 추출 중...', `오디오 스트림 다운로드 ${Math.round(p)}%`, 'step-dl');
+                        } else if (job.status === 'processing') {
+                            setProgress(75, '🔄 MP3 인코딩 중...', 'ffmpeg가 MP3로 변환 중입니다', 'step-conv');
                         } else if (job.status === 'completed') {
                             clearInterval(timer);
-                            setProgress(100, '✅ 완료!', '파일 준비됨');
-                            statusArea.style.display = 'none';
-                            showResult(jobId, job.title);
-                            resolve();
+                            stopElapsed();
+                            setProgress(100, '✅ 변환 완료!', '파일이 준비되었습니다', 'step-done');
+                            setTimeout(() => {
+                                statusArea.style.display = 'none';
+                                showResult(jobId, job.title);
+                                resolve();
+                            }, 800);
                         } else if (job.status === 'error') {
                             clearInterval(timer);
-                            reject(new Error(job.error));
+                            stopElapsed();
+                            reject(new Error(job.error || '서버 오류'));
                         }
                     } catch (e) {
                         clearInterval(timer);
+                        stopElapsed();
                         reject(e);
                     }
-                }, 1500);
+                }, 2000);
             });
         }
 
         function showResult(jobId, title) {
             resultTitle.textContent = title || '변환 완료';
-            downloadLink.href = `/api/download/${jobId}`;
+            downloadLink.href = `${API_BASE}/api/download/${jobId}`;
             resultArea.style.display = 'block';
             resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
