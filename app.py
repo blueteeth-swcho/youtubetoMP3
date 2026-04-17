@@ -31,17 +31,21 @@ def _ydl_opts(out_tmpl, hook=None):
         'outtmpl': out_tmpl,
         'quiet': True,
         'no_warnings': True,
-        # Bypass YouTube bot detection on cloud IP by pretending to be iOS app
+        # Bypass YouTube bot detection and improve format detection
         'extractor_args': {
-            'youtube': {'player_client': ['ios', 'web']}
+            'youtube': {
+                'player_client': ['ios', 'android', 'web', 'mweb'],
+                'skip': ['hls', 'dash']
+            }
         },
         'http_headers': {
             'User-Agent': (
-                'com.google.ios.youtube/19.29.1 '
-                '(iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)'
+                'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) '
+                'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'
             ),
         },
         'cookiefile': 'cookies.txt',
+        'ignoreerrors': True,
     }
     if hook:
         opts['progress_hooks'] = [hook]
