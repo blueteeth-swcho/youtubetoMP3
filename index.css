@@ -15,6 +15,29 @@
     --radius-md:   12px;
 }
 
+/* ─── Shortcut install banner ───────────────────── */
+.shortcut-install-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, rgba(48,209,88,0.15), rgba(48,209,88,0.05));
+    border: 1.5px solid rgba(48, 209, 88, 0.4);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    text-decoration: none;
+    color: var(--text1);
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(48,209,88,0.15);
+}
+.shortcut-install-banner:active { transform: scale(0.98); }
+.sib-icon { font-size: 28px; flex-shrink: 0; }
+.sib-text { flex: 1; }
+.sib-text strong { display: block; font-size: 14px; color: var(--green); margin-bottom: 3px; }
+.sib-text span   { font-size: 11px; color: var(--text2); }
+.sib-arrow { font-size: 20px; color: var(--green); font-weight: 700; }
+
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
