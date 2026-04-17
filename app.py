@@ -41,6 +41,7 @@ def _ydl_opts(out_tmpl, hook=None):
                 '(iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)'
             ),
         },
+        'cookiefile': 'cookies.txt',
     }
     if hook:
         opts['progress_hooks'] = [hook]
