@@ -5,6 +5,11 @@ from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 import yt_dlp
 
+# Make sure ffmpeg installed by build.sh is on PATH (for Render)
+_ffmpeg_dir = '/opt/render/project/.ffmpeg'
+if os.path.isdir(_ffmpeg_dir) and _ffmpeg_dir not in os.environ.get('PATH', ''):
+    os.environ['PATH'] = _ffmpeg_dir + ':' + os.environ.get('PATH', '')
+
 app = Flask(__name__)
 CORS(app)
 
