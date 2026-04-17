@@ -21,6 +21,9 @@ if os.path.isdir(_ffmpeg_dir) and _ffmpeg_dir not in os.environ.get('PATH', ''):
 
 
 def _ydl_opts(out_tmpl, hook=None):
+    # Use absolute path for cookies.txt to ensure it's found on Render
+    cookie_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies.txt')
+    
     opts = {
         'format': 'bestaudio/best',
         'postprocessors': [{
@@ -31,21 +34,22 @@ def _ydl_opts(out_tmpl, hook=None):
         'outtmpl': out_tmpl,
         'quiet': True,
         'no_warnings': True,
-        # Bypass YouTube bot detection and improve format detection
+        # Aggressive bypass tactics
         'extractor_args': {
             'youtube': {
-                'player_client': ['ios', 'android', 'web', 'mweb'],
+                'player_client': ['web', 'ios', 'android', 'mweb', 'tvhtml5'],
                 'skip': ['hls', 'dash']
             }
         },
         'http_headers': {
             'User-Agent': (
-                'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) '
-                'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             ),
         },
-        'cookiefile': 'cookies.txt',
-        'ignoreerrors': True,
+        'cookiefile': cookie_path,
+        'nocheckcertificate': True,
+        'ignoreerrors': False,
     }
     if hook:
         opts['progress_hooks'] = [hook]
