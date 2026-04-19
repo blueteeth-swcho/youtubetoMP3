@@ -186,6 +186,17 @@ def rss_feed():
     podcasts = load_podcasts()
     
     items_xml = ""
+    if not podcasts:
+        # Add a dummy welcome item if empty to avoid Apple Podcasts "Not Found" error
+        items_xml = f"""
+        <item>
+            <title>반갑습니다! WatchStream 방송국입니다.</title>
+            <enclosure url="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" length="0" type="audio/mpeg" />
+            <guid>welcome-item</guid>
+            <pubDate>{datetime.now().strftime("%a, %d %b %Y %H:%M:%S +0900")}</pubDate>
+            <itunes:summary>방송국이 성공적으로 개설되었습니다. 이제 단축어로 영상을 추가하세요!</itunes:summary>
+        </item>"""
+    
     for p in reversed(podcasts): # Latest first
         items_xml += f"""
         <item>
