@@ -2,6 +2,8 @@ import os
 import uuid
 import plistlib
 import threading
+import json
+from datetime import datetime
 from flask import Flask, request, jsonify, send_file, send_from_directory, Response
 from flask_cors import CORS
 import yt_dlp
@@ -13,6 +15,21 @@ conversion_jobs = {}
 
 DOWNLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'downloads')
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+
+PODCASTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'podcasts.json')
+
+def load_podcasts():
+    if os.path.exists(PODCASTS_FILE):
+        try:
+            with open(PODCASTS_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return []
+    return []
+
+def save_podcasts(podcasts):
+    with open(PODCASTS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(podcasts, f, ensure_ascii=False, indent=2)
 
 # Make sure ffmpeg installed by build.sh is on PATH (for Render)
 _ffmpeg_dir = '/opt/render/project/.ffmpeg'
@@ -162,6 +179,74 @@ def sync_convert():
         return jsonify({'error': str(e)}), 500
 
 
+# ── Podcast RSS Feed ────────────────────────────────────────────────────────
+@app.route('/rss')
+def rss_feed():
+    server_url = request.url_root.rstrip('/')
+    podcasts = load_podcasts()
+    
+    items_xml = ""
+    for p in reversed(podcasts): # Latest first
+        items_xml += f"""
+        <item>
+            <title><![CDATA[{p['title']}]]></title>
+            <enclosure url="{server_url}/api/download_direct/{p['filename']}" length="0" type="audio/mpeg" />
+            <guid>{p['id']}</guid>
+            <pubDate>{p['date']}</pubDate>
+            <itunes:author>My WatchStream</itunes:author>
+            <itunes:summary>YouTube Audio Stream</itunes:summary>
+        </item>"""
+
+    rss_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+    <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+    <channel>
+        <title>My WatchStream</title>
+        <link>{server_url}</link>
+        <language>ko-kr</language>
+        <itunes:author>Antigravity</itunes:author>
+        <itunes:summary>YouTube to Apple Watch Streaming</itunes:summary>
+        <itunes:image href="https://raw.githubusercontent.com/yt-dlp/yt-dlp/master/logo.png" />
+        {items_xml}
+    </channel>
+    </rss>"""
+    return Response(rss_xml, mimetype='application/rss+xml')
+
+
+@app.route('/api/download_direct/<filename>')
+def download_direct(filename):
+    return send_from_directory(DOWNLOAD_DIR, filename)
+
+
+# ── Add to Watch (for the Shortcut) ──────────────────────────────────────────
+@app.route('/api/watch', methods=['POST', 'GET'])
+def add_to_watch():
+    url = (request.args.get('url') or (request.json.get('url') if request.is_json else '')).strip()
+    if not url:
+        return jsonify({'error': 'URL is required'}), 400
+
+    job_id = str(uuid.uuid4())
+    out_tmpl = os.path.join(DOWNLOAD_DIR, f'{job_id}.%(ext)s')
+
+    try:
+        with yt_dlp.YoutubeDL(_ydl_opts(out_tmpl)) as ydl:
+            info = ydl.extract_info(url, download=True)
+            title = info.get('title', 'audio')
+
+        filename = f'{job_id}.mp3'
+        podcasts = load_podcasts()
+        podcasts.append({
+            'id': job_id,
+            'title': title,
+            'filename': filename,
+            'date': datetime.now().strftime("%a, %d %b %Y %H:%M:%S +0900")
+        })
+        save_podcasts(podcasts)
+        
+        return jsonify({'status': 'success', 'title': title, 'rss': request.url_root.rstrip('/') + '/rss'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 # ── Serve the Shortcut file so user can install it in one tap ────────────────
 @app.route('/get-shortcut')
 def serve_shortcut():
@@ -177,12 +262,12 @@ def serve_shortcut():
     }
 
     actions = [
-        # 1. POST YouTube URL to our sync endpoint → gets back the MP3 file
+        # 1. Add YouTube URL to Watch RSS Feed
         {
             'WFWorkflowActionIdentifier': 'is.workflow.actions.downloadurl',
             'WFWorkflowActionParameters': {
                 'WFHTTPMethod': 'POST',
-                'WFURL': server_url + '/api/sync',
+                'WFURL': server_url + '/api/watch',
                 'WFHTTPBodyType': 'JSON',
                 'WFJSONValues': {
                     'Value': {
@@ -202,10 +287,12 @@ def serve_shortcut():
                 'ShowResult': False,
             },
         },
-        # 2. Add the returned MP3 to Apple Music Library
+        # 2. Show success and RSS URL
         {
-            'WFWorkflowActionIdentifier': 'is.workflow.actions.music.addtomusic',
-            'WFWorkflowActionParameters': {},
+            'WFWorkflowActionIdentifier': 'is.workflow.actions.showresult',
+            'WFWorkflowActionParameters': {
+                'Text': '성공! 애플워치 팟캐스트 앱에서 확인하세요.\nRSS: ' + server_url + '/rss',
+            },
         },
     ]
 
@@ -221,7 +308,7 @@ def serve_shortcut():
         'WFWorkflowInputContentItemClasses': ['WFURLContentItem'],
         'WFWorkflowMinimumClientVersion': 900,
         'WFWorkflowMinimumClientVersionString': '900',
-        'WFWorkflowName': 'YT → Apple Music',
+        'WFWorkflowName': 'Add to WatchStream',
         'WFWorkflowNoInputBehavior': {
             'Name': 'WFWorkflowNoInputBehaviorAskForInput',
             'Parameters': {'Class': 'WFURLContentItem'},
@@ -234,7 +321,7 @@ def serve_shortcut():
     return Response(
         data,
         mimetype='application/vnd.apple.shortcut',
-        headers={'Content-Disposition': 'attachment; filename="YT_to_Apple_Music.shortcut"'},
+        headers={'Content-Disposition': 'attachment; filename="Add_to_WatchStream.shortcut"'},
     )
 
 
