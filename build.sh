@@ -1,20 +1,24 @@
 #!/usr/bin/env bash
 # Render free tier build script
-# Install ffmpeg via static binary (no sudo needed)
 set -e
 
+# Install requirements
 pip install -r requirements.txt
 
-# Download a static ffmpeg build if not already present
-if ! command -v ffmpeg &> /dev/null; then
+# Setup ffmpeg directory
+FFMPEG_DIR="/opt/render/project/.ffmpeg"
+mkdir -p "$FFMPEG_DIR"
+
+# Download static ffmpeg if not present
+if [ ! -f "$FFMPEG_DIR/ffmpeg" ]; then
     echo "Installing ffmpeg..."
-    mkdir -p /opt/render/project/.ffmpeg
-    cd /opt/render/project/.ffmpeg
-    curl -L https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz \
-         -o ffmpeg.tar.xz
-    tar -xf ffmpeg.tar.xz --strip-components=2 --wildcards '*/bin/ffmpeg'
+    cd "$FFMPEG_DIR"
+    # Using a simpler direct download of the binary if possible, or a standard tar
+    curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -o ffmpeg.tar.xz
+    tar -xJf ffmpeg.tar.xz --strip-components=1
+    # Ensure the binary is in the right place
+    [ -f "./ffmpeg" ] || find . -name ffmpeg -exec cp {} . \;
     chmod +x ffmpeg
-    export PATH="/opt/render/project/.ffmpeg:$PATH"
-    echo "ffmpeg installed: $(./ffmpeg -version 2>&1 | head -1)"
+    echo "ffmpeg installed: $(./ffmpeg -version | head -n 1)"
     cd -
 fi
