@@ -209,17 +209,17 @@ def rss_feed():
         </item>"""
 
     rss_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
-    <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
-    <channel>
-        <title>My WatchStream</title>
-        <link>{server_url}</link>
-        <language>ko-kr</language>
-        <itunes:author>Antigravity</itunes:author>
-        <itunes:summary>YouTube to Apple Watch Streaming</itunes:summary>
-        <itunes:image href="https://raw.githubusercontent.com/yt-dlp/yt-dlp/master/logo.png" />
-        {items_xml}
-    </channel>
-    </rss>"""
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+<channel>
+<title>My WatchStream</title>
+<link>{server_url}</link>
+<language>ko-kr</language>
+<itunes:author>Antigravity</itunes:author>
+<itunes:summary>YouTube to Apple Watch Streaming</itunes:summary>
+<itunes:image href="https://raw.githubusercontent.com/yt-dlp/yt-dlp/master/logo.png" />
+{items_xml}
+</channel>
+</rss>""".strip()
     return Response(rss_xml, mimetype='application/rss+xml')
 
 
